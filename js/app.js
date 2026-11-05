@@ -579,14 +579,34 @@ function closeImageModal() {
 
 // Event Listeners
 function setupEventListeners() {
-  // Brand logo click returns to portal
+  // Brand logo click returns to portal (5 clicks rápidos abren el admin discretamente)
   const brandLink = document.getElementById('brandLink');
+  let secretClicks = 0;
+  let secretClickTimer = null;
   if (brandLink) {
     brandLink.addEventListener('click', (e) => {
       e.preventDefault();
+      secretClicks++;
+      clearTimeout(secretClickTimer);
+      if (secretClicks >= 5) {
+        secretClicks = 0;
+        window.location.href = 'admin.html';
+        return;
+      }
+      secretClickTimer = setTimeout(() => {
+        secretClicks = 0;
+      }, 1500);
       navigateToPortal();
     });
   }
+
+  // Atajo secreto de teclado para el dueño (Ctrl + Shift + A)
+  window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+      e.preventDefault();
+      window.location.href = 'admin.html';
+    }
+  });
 
   // Back button from category view
   const backBtn = document.getElementById('btnBackToPortal');

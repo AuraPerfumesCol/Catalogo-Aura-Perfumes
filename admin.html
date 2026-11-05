@@ -203,14 +203,129 @@
       gap: 0.6rem;
       animation: fadeIn 0.3s ease;
     }
+    /* Login Gate & Auth */
+    .admin-login-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 10, 10, 0.96);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .admin-login-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.9), var(--gold-glow);
+      animation: fadeIn 0.4s ease;
+    }
+    .admin-login-icon {
+      font-size: 2.8rem;
+      margin-bottom: 0.75rem;
+      display: inline-block;
+      filter: drop-shadow(0 0 14px rgba(197, 158, 89, 0.6));
+    }
+    .admin-login-brand {
+      font-size: 0.78rem;
+      letter-spacing: 0.22em;
+      color: var(--gold-primary);
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+    }
+    .admin-login-card h2 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 0.4rem;
+    }
+    .admin-login-card p {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      margin-bottom: 1.75rem;
+      line-height: 1.4;
+    }
+    .admin-password-input {
+      text-align: center;
+      letter-spacing: 0.15em;
+      font-size: 1.1rem;
+      padding: 0.85rem 1rem;
+    }
+    .login-error-msg {
+      background: rgba(239, 83, 80, 0.15);
+      color: #ff8a80;
+      border: 1px solid rgba(239, 83, 80, 0.35);
+      padding: 0.65rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.84rem;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+    .btn-header-auth {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.6rem 0.95rem;
+      font-size: 0.82rem;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-weight: 600;
+      transition: all var(--transition-fast);
+      border: 1px solid var(--border-subtle);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-secondary);
+      text-decoration: none;
+    }
+    .btn-header-auth:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+      border-color: var(--gold-primary);
+    }
   </style>
 </head>
 <body>
 
   <div class="ambient-glow" aria-hidden="true"></div>
 
-  <!-- Contenedor Principal Admin -->
-  <main class="admin-container">
+  <!-- PANTALLA DE ACCESO DE SEGURIDAD (LOGIN GATE) -->
+  <div id="adminLoginGate" class="admin-login-overlay">
+    <div class="admin-login-card">
+      <div class="admin-login-icon">🔒</div>
+      <div class="admin-login-brand">AURA · Acceso Restringido</div>
+      <h2>Panel Administrativo</h2>
+      <p>Ingresa la contraseña de seguridad para acceder a la gestión del catálogo.</p>
+
+      <form id="adminLoginForm" onsubmit="handleAdminLogin(event)">
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <input type="password" id="adminPasswordInput" class="form-control admin-password-input" placeholder="••••••••" required autofocus autocomplete="current-password">
+        </div>
+        <div id="loginErrorMsg" class="login-error-msg" style="display:none;">
+          ⚠️ Contraseña incorrecta. Inténtalo de nuevo.
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:0.85rem; font-size:0.95rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+          <span>Desbloquear Panel</span>
+        </button>
+      </form>
+
+      <div style="margin-top:1.5rem; text-align:center;">
+        <a href="index.html" style="color:var(--text-muted); font-size:0.85rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.35rem;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+          <span>Volver al Catálogo Público</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenedor Principal Admin (Oculto hasta autenticar) -->
+  <main class="admin-container" id="adminMainContent" style="display:none;">
     
     <!-- Barra Superior -->
     <header class="admin-header-bar">
@@ -228,6 +343,14 @@
       </div>
 
       <div style="display:flex; gap:0.65rem; align-items:center; flex-wrap:wrap;">
+        <button type="button" class="btn-header-auth" onclick="openChangePasswordModal()" title="Cambiar contraseña de administración">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+          <span>Cambiar Clave</span>
+        </button>
+        <button type="button" class="btn-header-auth" onclick="logoutAdmin()" title="Cerrar sesión de administrador">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+          <span>Cerrar Sesión</span>
+        </button>
         <a href="index.html" class="btn-secondary" style="font-size:0.85rem; padding:0.6rem 1.2rem;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
           <span>Ver Catálogo Público</span>
@@ -428,6 +551,45 @@
     </div>
   </div>
 
+  <!-- ========================================================
+       MODAL: CAMBIAR CONTRASEÑA DE ADMINISTRADOR
+       ======================================================== -->
+  <div class="modal-overlay" id="changePasswordModal">
+    <div class="modal-content" style="max-width: 440px; padding: 2rem;">
+      <button type="button" class="modal-close-btn" onclick="closeChangePasswordModal()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+      </button>
+
+      <div style="font-size:0.75rem; color:var(--gold-primary); font-weight:700; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.25rem;">Seguridad</div>
+      <h2 style="font-size:1.35rem; font-weight:800; margin-bottom:0.4rem;">🔒 Cambiar Contraseña</h2>
+      <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1.25rem; line-height:1.4;">
+        Establece una nueva clave para acceder a la gestión de productos.
+      </p>
+
+      <form id="changePasswordForm" onsubmit="handleChangePassword(event)">
+        <div class="form-group">
+          <label for="currentPwdInput">Contraseña Actual *</label>
+          <input type="password" id="currentPwdInput" class="form-control" required autocomplete="current-password" placeholder="Tu clave actual">
+        </div>
+        <div class="form-group">
+          <label for="newPwdInput">Nueva Contraseña *</label>
+          <input type="password" id="newPwdInput" class="form-control" required autocomplete="new-password" placeholder="Mínimo 4 caracteres">
+        </div>
+        <div class="form-group">
+          <label for="confirmPwdInput">Confirmar Nueva Contraseña *</label>
+          <input type="password" id="confirmPwdInput" class="form-control" required autocomplete="new-password" placeholder="Repite la nueva contraseña">
+        </div>
+
+        <div id="changePwdError" class="login-error-msg" style="display:none; margin-top:0.6rem;"></div>
+
+        <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:1.5rem; border-top:1px solid var(--border-subtle); padding-top:1.2rem;">
+          <button type="button" class="btn-secondary" onclick="closeChangePasswordModal()">Cancelar</button>
+          <button type="submit" class="btn-primary">Guardar Nueva Clave</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Toast Notificación -->
   <div class="toast-msg" id="toastMsg">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
@@ -440,6 +602,116 @@
     let perfumesList = typeof PERFUMES_DATA !== 'undefined' ? [...PERFUMES_DATA] : [];
     let activeFilter = 'all';
 
+    const DEFAULT_HASH = '6a91bf577ded55dce359b5d51313dc29a751265e04319d9a05a73bb6b2f00b3f'; // hash de 'aura2026'
+
+    async function sha256(str) {
+      const enc = new TextEncoder();
+      const data = enc.encode(str);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function getStoredHash() {
+      return localStorage.getItem('aura_admin_pwd_hash') || DEFAULT_HASH;
+    }
+
+    async function checkAuthOnLoad() {
+      const isAuth = sessionStorage.getItem('aura_admin_auth') === 'true';
+      const gate = document.getElementById('adminLoginGate');
+      const main = document.getElementById('adminMainContent');
+
+      if (isAuth) {
+        if (gate) gate.style.display = 'none';
+        if (main) main.style.display = 'block';
+        renderTable();
+        updateStats();
+        updateSubcatOptions();
+      } else {
+        if (gate) gate.style.display = 'flex';
+        if (main) main.style.display = 'none';
+        setTimeout(() => {
+          const input = document.getElementById('adminPasswordInput');
+          if (input) input.focus();
+        }, 100);
+      }
+    }
+
+    async function handleAdminLogin(e) {
+      e.preventDefault();
+      const input = document.getElementById('adminPasswordInput');
+      const errorMsg = document.getElementById('loginErrorMsg');
+      const entered = input.value;
+
+      const hash = await sha256(entered);
+      const targetHash = getStoredHash();
+
+      if (hash === targetHash) {
+        sessionStorage.setItem('aura_admin_auth', 'true');
+        errorMsg.style.display = 'none';
+        document.getElementById('adminLoginGate').style.display = 'none';
+        document.getElementById('adminMainContent').style.display = 'block';
+        renderTable();
+        updateStats();
+        updateSubcatOptions();
+        showToast('🔓 Sesión iniciada correctamente');
+      } else {
+        errorMsg.style.display = 'block';
+        input.select();
+        input.focus();
+      }
+    }
+
+    function logoutAdmin() {
+      sessionStorage.removeItem('aura_admin_auth');
+      window.location.reload();
+    }
+
+    function openChangePasswordModal() {
+      document.getElementById('currentPwdInput').value = '';
+      document.getElementById('newPwdInput').value = '';
+      document.getElementById('confirmPwdInput').value = '';
+      document.getElementById('changePwdError').style.display = 'none';
+      document.getElementById('changePasswordModal').classList.add('active');
+      setTimeout(() => document.getElementById('currentPwdInput').focus(), 150);
+    }
+
+    function closeChangePasswordModal() {
+      document.getElementById('changePasswordModal').classList.remove('active');
+    }
+
+    async function handleChangePassword(e) {
+      e.preventDefault();
+      const current = document.getElementById('currentPwdInput').value;
+      const newPwd = document.getElementById('newPwdInput').value;
+      const confirmPwd = document.getElementById('confirmPwdInput').value;
+      const errEl = document.getElementById('changePwdError');
+
+      const curHash = await sha256(current);
+      if (curHash !== getStoredHash()) {
+        errEl.textContent = 'La contraseña actual no es correcta.';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      if (newPwd.length < 4) {
+        errEl.textContent = 'La nueva clave debe tener al menos 4 caracteres.';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      if (newPwd !== confirmPwd) {
+        errEl.textContent = 'La confirmación no coincide con la nueva clave.';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      const newHash = await sha256(newPwd);
+      localStorage.setItem('aura_admin_pwd_hash', newHash);
+      closeChangePasswordModal();
+      showToast('✅ ¡Contraseña actualizada con éxito!');
+    }
+
     const subcatMap = {
       dama: ['Dulces - Gourmand', 'Florales', 'Frutales', 'Cítricos - Frescos', 'Atalcados'],
       caballero: ['Amaderados & Elegantes', 'Frescos & Acuáticos', 'Cítricos & Enérgicos', 'Gourmand Nocturnos'],
@@ -447,9 +719,7 @@
     };
 
     document.addEventListener('DOMContentLoaded', () => {
-      renderTable();
-      updateStats();
-      updateSubcatOptions();
+      checkAuthOnLoad();
 
       document.getElementById('adminSearchInput').addEventListener('input', (e) => {
         renderTable(e.target.value);
